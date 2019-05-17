@@ -19,7 +19,7 @@ class Blog(db.Model):
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    return render_template('blog.html',title="Build-A-Blog")
+    return redirect('/blog')
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
@@ -51,10 +51,11 @@ def add_entry():
 @app.route('/blog', methods=['GET', 'POST'])
 def blog():
     if request.method == 'GET':
-        blog_id = request.args.get(add_entry)
+        blog_id = request.args.get('id')
         blog_entries = Blog.query.all()
+        single_entry = Blog.query.filter_by(id=blog_id).first()
 
-    return render_template('blog.html', blog=blog_entries)
+    return render_template('blog.html', blog=blog_entries, single_entry=single_entry)
 
 if __name__ == '__main__':
     app.run()

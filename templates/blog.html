@@ -2,15 +2,19 @@
 
 {% block content%}
 
-  <body action="/blog" methods="get">
-    <h1>Build A Blog</h1>
+  <body>
     {% if blog|length  == 0 %}
-    <p>No entries yet</p>
+    <h4>No entries yet</h4>
+
+    {% elif single_entry %}
+      <h1>{{single_entry.title}}</h1>
+      <p>{{single_entry.body}}</p>
+
     {% else %}
       <ul>
         {% for entry in blog %}
         <li>
-          <h1><a href="{{entry.id}}">{{entry.title}}</a></h1>
+          <h1><a href="/blog?id={{entry.id}}">{{entry.title}}</a></h1>
             <p>{{entry.body}}</p>
         </li>
         <hr />
