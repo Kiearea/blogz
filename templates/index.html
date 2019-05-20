@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content%}
+
+  <body>
+    <h1>Blog Users</h1>
+
+    {% if blog|length  == 0 %}
+    <h4>No users yet</h4>
+
+    {% elif single_entry %}
+      <h1>{{single_entry.title}}</h1>
+      <p>{{single_entry.body}}</p>
+
+    {% else %}
+      <ul>
+        {% for entry in blog %}
+        <li>
+          <h1><a href="/blog?id={{entry.id}}">{{entry.title}}</a></h1>
+            <p>{{entry.body}}</p>
+        </li>
+        <hr />
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </body>
+
+{% endblock %}
