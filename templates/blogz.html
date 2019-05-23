@@ -3,25 +3,26 @@
 {% block content%}
 
   <body>
-    <h1>Blog Posts!</h1>
-
-    {% if blog|length  == 0 %}
-    <h4>No entries yet</h4>
+    {% if entry|length  == 0 %}
+      <h4>No entries yet</h4>
 
     {% elif single_entry %}
       <h1>{{single_entry.title}}</h1>
       <p>{{single_entry.body}}</p>
+      <p><em>Written by: <a href="/?user={{single_entry.owner.username}}"></em>{{single_entry.owner.username}}</a></p>
 
     {% else %}
-      <ul>
-        {% for entry in blog %}
-        <li>
-          <h1><a href="/blog?id={{entry.id}}">{{entry.title}}</a></h1>
-            <p>{{entry.body}}</p>
-        </li>
-        <hr />
-        {% endfor %}
-      </ul>
+    <h1>Blog Posts</h1>
+    <ul>
+      {% for ent in entry %}
+      <li>
+        <h2><a href="/blogz?id={{ent.id}}">{{ent.title}}</a></h2>
+        <p>{{ent.body}}</p>
+      </li>
+      <p><em>Written by: <a href="/?user={{ent.owner.username}}"></em>{{ent.owner.username}}</a></p>
+      <hr>
+      {% endfor %}
+    </ul>
     {% endif %}
   </body>
 

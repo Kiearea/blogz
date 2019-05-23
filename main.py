@@ -18,40 +18,47 @@ class Blogz(db.Model):
     def __init__(self, title, body, owner):
         self.title = title
         self.body = body
-        self.completed = False
         self.owner = owner
 
 class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True)
+    username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
     blogz = db.relationship('Blogz', backref = 'owner') #ties the task to an owner
 
-    def __init__(self, name, password):
-        self.namme = name
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
 
+@app.before_request
+def login_check():
+    allowed_handlers = ['index', 'login', 'signup', 'validate_signup', 'blogz', 'add_entry', 'singleUser']
+    if request.endpoint not in allowed_handlers and 'username' not in session:
+        return redirect('/login')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if request.method == 'GET':
+        user = request.args.get('user')
+        user_entries = User.query.filter_by(id=user).first()
+        user_object = User.query.filter_by(username=user).first()
+        users = User.query.all()
+        entry = Blogz.query.filter_by(owner=user_object)
 
+    return render_template('index.html', users=users, user=user, entry=entry)
 #Login
-@app.route('/login')
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def validate_login():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render_template('login.html')
+    elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
         username_error = ""
         password_error = ""
 
-    # Do checks
         if username == username_error:
             username_error = "This field cannot be left blank"
         else:
@@ -66,22 +73,22 @@ def validate_login():
             password_error = "This field cannot be left blank"
         else:
             if len(password) < 3 or len(password) > 20:
-                password_error = "Passwords must be between 3 and 20 character"
+                password_error = "Passwords must be between 3 and 20 characters"
             else:
                 if password.isspace():
                     password_error = "Password cannot contain spaces"
 
         if not username_error and not password_error:
+            session['username'] = username
             return render_template('newpost.html')
 
-    # redirect if errors
+        # redirect if errors
         return render_template("login.html",
             username_error=username_error,
             password_error=password_error,
             username=username)
 
-    else:
-        return redirect('/login')
+    return redirect("/login")
 
 
 #signup
@@ -89,7 +96,7 @@ def validate_login():
 def signup():
     return render_template('signup.html')
 
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route('/signup', methods=['POST'])
 def validate_signup():
     if request.method == 'POST':
         username = request.form['username']
@@ -127,6 +134,9 @@ def validate_signup():
                 verify_error = "Passwords don't match. Please try again"
 
         if not username_error and not password_error and not verify_error:
+            good_name = User(username, password)
+            db.session.add(good_name)
+            db.session.commit()
             return render_template('newpost.html')
 
     # redirect if errors
@@ -139,19 +149,20 @@ def validate_signup():
     else:
         return redirect('/signup')
 
-
 #New posts
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
-    owner = User.query.filter_by(name=session['name']).first()
     return render_template('newpost.html')
 
 @app.route('/add_entry', methods=['GET', 'POST'])
 def add_entry():
+    owner = User.query.filter_by(username=session['username']).first()
+
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
-        add_entry = Blogz(title, body)
+        author = request.args.get('username')
+        add_entry = Blogz(title, body, owner)
         db.session.add(add_entry)
         db.session.commit()
 
@@ -165,23 +176,23 @@ def add_entry():
             body_error = "This field cannot be left blank"
 
     if not title_error and not body_error:
-        return render_template('add_entry.html', title=title, body=body)
+        return render_template('add_entry.html', title=title, body=body, author=author)
 
     return render_template('newpost.html', title_error=title_error, body_error=body_error)
 
 @app.route('/blogz', methods=['GET', 'POST'])
 def blogz():
     if request.method == 'GET':
-        blogz_id = request.args.get('id')
-        blogz_entries = Blogz.query.all()
-        single_entry = Blogz.query.filter_by(id=blogz_id).first()
+        blog_id = request.args.get('id')
+        single_entry = Blogz.query.filter_by(id=blog_id).first()
+        entry = Blogz.query.all()
 
-    return render_template('blogz.html', blogz=blogz_entries, single_entry=single_entry)
+    return render_template('blogz.html', entry=entry, single_entry=single_entry)
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
-    del session['name']
-    return redirect('/')
+    del session['username']
+    return redirect("/")
 
 if __name__ == '__main__':
     app.run()
