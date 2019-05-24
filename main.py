@@ -33,7 +33,7 @@ class User(db.Model):
 
 @app.before_request
 def login_check():
-    allowed_handlers = ['index', 'login', 'signup', 'validate_signup', 'blogz', 'add_entry', 'singleUser', 'static']
+    allowed_handlers = ['index', 'login', 'signup', 'validate_signup', 'blogz', 'add_entry', 'singleUser', 'style.css']
     if request.endpoint not in allowed_handlers and 'username' not in session:
         return redirect('/login')
 
@@ -135,6 +135,7 @@ def validate_signup():
 
         if not username_error and not password_error and not verify_error:
             good_name = User(username, password)
+            session['username'] = username
             db.session.add(good_name)
             db.session.commit()
             return render_template('newpost.html')
