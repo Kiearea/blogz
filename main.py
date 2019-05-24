@@ -33,7 +33,7 @@ class User(db.Model):
 
 @app.before_request
 def login_check():
-    allowed_handlers = ['index', 'login', 'signup', 'validate_signup', 'blogz', 'add_entry', 'singleUser']
+    allowed_handlers = ['index', 'login', 'signup', 'validate_signup', 'blogz', 'add_entry', 'singleUser', 'static']
     if request.endpoint not in allowed_handlers and 'username' not in session:
         return redirect('/login')
 
